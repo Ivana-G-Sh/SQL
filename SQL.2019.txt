@@ -1,0 +1,1646 @@
+SQL (Structured Query Language)
+
+#####################SELECT##########################
+In SQL, you can select data from a table using a SELECT statement. 
+For example, the following query selects the name column from the people table
+
+#taj SQL je kao skup tablic au excellu gdje imas paralelene tablic ekoje imaju imena kolona
+
+
+SELECT name #kao ime kolone
+FROM people; #people je tablica
+
+SELECT and FROM are called keywords; keywords are not case sensitive
+; means end of query
+
+#select multiple columns
+#For example, this query selects two columns, name and birthdate, from the people table:
+
+SELECT name, birthdate
+FROM people;
+
+#select all the columns
+SELECT *
+FROM people;
+
+#limit the number of results
+#if you only want to return a certain number of results, you can use the LIMIT keyword to limit the number of rows returned:
+
+SELECT *
+FROM people
+LIMIT 10;
+
+###----------SELECT + DISTINCT
+#Often your results will include many duplicate values. If you want to select all the unique values from a column, you can use the DISTINCT keyword.
+#This might be useful if, for example, you're interested in knowing which languages are represented in the films table:
+
+SELECT DISTINCT language
+FROM films;
+
+##----------SELECT + COUNT
+For example, this code gives the number of rows in the people table:
+
+SELECT COUNT(*)
+FROM people;
+
+#if you want to count the number of non-missing values in a particular column, you can call COUNT on just that column.
+#For example, to count the number of birth dates present in the people table:
+
+SELECT COUNT(birthdate)
+FROM people;
+
+#It's also common to combine COUNT with DISTINCT to count the number of distinct values in a column.
+#For example, this query counts the number of distinct birth dates contained in the people table:
+
+SELECT COUNT(DISTINCT birthdate)
+FROM people;
+
+##----------WHERE (filtering)
+For example, the following query selects all details for films with a budget over ten thousand dollars:
+
+SELECT *
+FROM films
+WHERE budget > 10000;
+
+#Get all details for all films released in 2016.
+SELECT *
+FROM films
+WHERE release_year = 2016;
+
+#Get the number of films released before 2000.
+SELECT COUNT (*)
+FROM films
+WHERE release_year < 2000;
+
+#Get the title and release year of films released after 2000.
+SELECT title, release_year
+FROM films
+WHERE release_year > 2000;
+
+SELECT title
+FROM films
+WHERE country = 'China';
+#Important: in PostgreSQL (the version of SQL we're using), you must use single quotes with WHERE
+
+#Get all details for french language films
+select *
+from films
+where language = 'French'
+
+#Get the name and birth date (?) of the person born on November 11th, 1974. Remember to use ISO date format ('1974-11-11')!
+select name, birthdate
+from people
+where birthdate = '1974-11-11'
+
+##-------------WHERE + AND
+ You can build up your WHERE queries by combining multiple conditions with the AND keyword.
+
+For example,
+
+SELECT title
+FROM films
+WHERE release_year > 1994
+AND release_year < 2000;
+
+#Get the title and release year for all Spanish language films released before 2000.
+select title, release_year
+from films
+where language = 'Spanish'
+and release_year < 2000;
+
+#Get all details for Spanish language films released after 2000.
+select *
+from films
+where language = 'Spanish'
+and release_year > 2000;
+
+#Get all details for Spanish language films released after 2000, but before 2010.
+select *
+from films
+where language = 'Spanish'
+and release_year > 2000
+and release_year < 2010;
+
+##--------------WHERE AND OR (select rows that meet some but not all conditions)
+#the following query selects all films that were released in 1994 or 1995 which had a rating of PG or R.
+SELECT title
+FROM films
+WHERE (release_year = 1994 OR release_year = 1995)
+AND (certification = 'PG' OR certification = 'R');
+
+# query to get the title and release year of films released in the 90s 
+#which were in French or Spanish and which took in more than $2M gross.
+select title, release_year
+from films
+where release_year >= 1990
+and release_year < 2000
+and (language = 'French' OR language = 'Spanish')
+
+##________________BETWEEN (filter values within, inclusive - uključuje i vrijednosti koje si specificirala)
+#For example, suppose we have a table called kids. We can get the names of all kids between the ages of 2 and 12 from the United States:
+SELECT name
+FROM kids
+WHERE age BETWEEN 2 AND 12
+AND nationality = 'USA';
+and gross > 2000000;
+
+#get the title and release year of all Spanish language films 
+#released between 1990 and 2000 (inclusive) 
+#with budgets over $100 million.
+select title, release_year
+from films
+where release_year BETWEEN 1990 AND 2000
+and budget > 100000000
+and language = 'Spanish';
+
+select title, release_year
+from films
+where release_year BETWEEN 1990 AND 2000
+and budget > 100000000
+and (language = 'French' OR language = 'Spanish');
+
+
+###_________________WHERE IN
+#get title and release year from all films released between 1990 and 2000 that last more than 2 hours
+select title, release_year
+from films
+where release_year IN (1990, 2000)
+and duration > 120;
+
+#Get the title and language of all films which were in English, Spanish, or French.
+select title, language
+from films
+where language IN ('English', 'Spanish', 'French')
+
+select title, certification
+from films
+where certification IN ('NC-17', 'R')
+
+
+
+##__________________NULL and IS NULL (MISSING VALUES)
+#Get the names of people who are still alive, i.e. whose death date is missing.
+select name
+from people
+where deathdate IS NULL;
+
+#Get the title of every film which doesn't have a budget associated with it.
+select title
+from films
+where budget IS NULL;
+
+#Get the number of films which don't have a language associated with them.
+select count (*)
+from films
+where language IS NULL;
+
+
+##____________LIKE and NOT LIKE (querying with strings)
+The % wildcard will match zero, one, or many characters in text. 
+#For example, the following query matches companies like 'Data', 'DataC' 'DataCamp', 'DataMind', and so on:
+
+SELECT name
+FROM companies
+WHERE name LIKE 'Data%';
+
+#Get the names of all people whose names begin with 'B'. 
+select name
+from people
+where name LIKE 'B%';
+
+The _ wildcard will match a single character. 
+#For example, the following query matches companies like 'DataCamp', 'DataComp', and so on:
+
+SELECT name
+FROM companies
+WHERE name LIKE 'DataC_mp';
+
+#Get the names of people whose names have 'r' as the second letter. The pattern you need is '_r%'
+select name
+from people
+where name LIKE '_r%';
+
+#__NOT LIKE operator to find records that don't match the pattern you specify.
+#Get the names of people whose names don't start with A. The pattern you need is 'A%'
+
+select name
+from people
+where name NOT LIKE 'A%';
+
+
+##________AGGREGATE FUNCTIONS
+#Use the SUM function to get the total duration of all films.
+select sum(duration)
+from films;
+
+#Get the average duration of all films.
+select avg(duration)
+from films;
+
+#Get the duration of the shortest film.
+select min(duration)
+from films;
+
+#Get the duration of the longest film.
+select max(duration)
+from films;
+
+#Use the SUM function to get the total amount grossed by all films.
+select sum(gross)
+from films;
+
+#Get the average amount grossed by all films.
+select avg(gross)
+from films;
+
+#Get the amount grossed by the worst performing film.
+select min(gross)
+from films;
+
+#Get the amount grossed by the best performing film.
+select max(gross)
+from films;
+
+###_____________________Combining aggregate functions with WHERE
+to get the total budget of movies made in the year 2010 or later:
+SELECT SUM(budget)
+FROM films
+WHERE release_year >= 2010;
+
+#get the total amount grossed by all films made in the year 2000 or later.
+select sum(gross)
+from films
+where release_year >= 2000;
+
+#Get the average amount grossed by all films whose titles start with the letter 'A'.
+select avg(gross)
+from films
+where title LIKE 'A%';
+
+#Get the amount grossed by the worst performing film in 1994.
+select min(gross)
+from films
+where release_year = 1994;
+
+#Get the amount grossed by the best performing film between 2000 and 2012, inclusive.
+select max(gross)
+from films
+where release_year BETWEEN 2000 AND 2012;
+
+
+####___________ALIASING (make results more clearer)
+#Get the title and net profit (the amount a film grossed, minus its budget) for all films. Alias the net profit as net_profit.
+SELECT title, gross - budget AS net_profit
+FROM films;
+
+#Get the title and duration in hours for all films. 
+#The duration is in minutes, so you'll need to divide by 60.0 to get the duration in hours. Alias the duration in hours as duration_hours.
+SELECT title, duration/60.0 AS duration_hours
+FROM films;
+
+#Get the average duration in hours for all films, aliased as avg_duration_hours
+SELECT avg(duration) /60.0 AS avg_duration_hours
+FROM films;
+
+#Get the percentage of people who are no longer alive. Alias the result as percentage_dead. Remember to use 100.0 and not 100!
+select count(deathdate) * 100.0 / count(*) AS percentage_dead
+from people;
+percentage_dead
+9.3723949029415267
+
+#Get the number of years between the newest film and oldest film. Alias the result as difference.
+select max(release_year) - min(release_year) AS difference
+from films;
+difference
+100
+
+#get the number of decades
+select (max(release_year) - min(release_year))/10 AS number_of_decades
+from films;
+
+
+###___________ORDER BY
+#get the names of people sorted alphabetically
+select name
+from people
+ORDER BY name
+
+#Get the names of people, sorted by birth date.
+select name
+from people
+ORDER BY birthdate
+
+#Get the birth date and name for every person, in order of when they were born.
+select birthdate, name 
+from people
+ORDER BY birthdate
+
+#Get the title of films released in 2000 or 2012, in the order they were released.
+select title
+from films
+where release_year = 2000 OR release_year=2012
+ORDER BY release_year
+
+#all details for films not from 2015 and sorted by duration
+select *
+from films
+where release_year <> 2015
+ORDER BY duration;
+
+#Get the title and gross earnings for movies which begin with the letter 'M' and order the results alphabetically.
+SELECT title, gross
+FROM films
+WHERE title LIKE 'M%'
+ORDER BY title;
+
+####_____________ DESCENDING ORDER
+
+#Get the IMDB score and film ID for every film from the reviews table, sorted from highest to lowest score.
+select film_id, imdb_score
+from reviews
+ORDER BY  imdb_score DESC
+
+#Get the title for every film, in reverse order.
+select title
+from films
+ORDER BY  title DESC
+
+#Get the title and duration for every film, in order of longest duration to shortest.
+select title, duration
+from films
+ORDER BY  duration DESC
+
+
+#____________sorting multiple columns
+#Get the birth date and name of people in the people table, in order of when they were born and alphabetically by name.
+SELECT birthdate, name
+FROM people
+ORDER BY birthdate, name
+
+#Get the release year, duration, and title of films ordered by their release year and duration.
+SELECT release_year, duration, title
+FROM films
+ORDER BY release_year, duration
+
+#Get certifications, release years, and titles of films ordered by certification (alphabetically) and release year.
+
+SELECT certification, release_year, title
+FROM films
+ORDER BY certification, release_year;
+
+#Get the names and birthdates of people ordered by name and birth date."
+SELECT name, birthdate
+FROM people
+ORDER BY name, birthdate
+
+
+##___________________GROUP BY
+#Get the release year and count of films released in each year.
+SELECT release_year, count(*)
+FROM films
+GROUP BY release_year	
+ORDER BY count DESC;
+
+#Get the release year and average duration of all films, grouped by release year.
+SELECT release_year, avg(duration)
+FROM films
+GROUP BY release_year;
+
+#Get the release year and largest budget for all films, grouped by release year.
+SELECT release_year, max(budget)
+FROM films
+GROUP BY release_year;
+
+#Get the IMDB score and count of film reviews grouped by IMDB score in the reviews table.
+SELECT imdb_score, count(*)
+FROM reviews
+GROUP BY imdb_score;
+
+#Get the release year and lowest gross earnings per release year.
+SELECT release_year, min(gross)
+FROM films
+GROUP BY release_year
+
+#Get the language and total gross amount films in each language made.
+SELECT language, sum(gross)
+FROM films
+GROUP BY language
+
+#Get the country and total budget spent making movies in each country.
+SELECT country, sum(budget)
+FROM films
+GROUP BY country
+
+#Get the release year, country, and highest budget spent making a film for each year, for each country. Sort your results by release year and country.
+SELECT release_year, country, max(budget)
+FROM films
+GROUP BY release_year, country
+ORDER BY release_year, country
+
+#Get the country, release year, and lowest amount grossed per release year per country. Order your results by country and release year.
+SELECT country, release_year, min(gross)
+FROM films
+GROUP BY country, release_year
+ORDER BY country, release_year
+
+
+#Now you're going to write a query that returns 
+-the average budget and average gross earnings for films 
+-in each year after 1990, if the average budget is greater than $60 million.
+select release_year, avg(budget) AS avg_budget, avg(gross) AS avg_gross
+from films
+where release_year > 1990 
+group by release_year
+having avg(budget) > 60000000
+order by avg(gross) DESC;
+
+#Get the country, average budget, and average gross take of countries that have made more than 10 films. 
+-Order the result by country name, and limit the number of results displayed to 5. 
+-you should alias the averages as avg_budget and avg_gross respectively.
+
+select country, avg(budget) as avg_budget, avg(gross) as avg_gross 
+from films
+group by country 
+having count(title) > 10
+order by country
+limit 5
+
+
+------------RELATIONAL DATABASES (postgre seql)
+https://www.postgresql.org/docs/10/datatype.html
+
+information_schema table - infor about all the tables in the database
+
+-- Query the right table in information_schema
+SELECT table_name 
+FROM information_schema.tables #information_schema is a meta-database that holds information about your current database
+WHERE table_schema = 'public'; #'public' schema holds information about user-defined tables and databases
+
+#Now have a look at the columns in university_professors by selecting all entries in information_schema.columns that correspond to that table.
+SELECT column_name, data_type 
+FROM information_schema.columns 
+WHERE table_name = 'university_professors' AND table_schema = 'public';
+
+#How many columns does the table university_professors have? samo prebrojala - ima 8
+
+#Finally, print the first five rows of the university_professors table.
+select * 
+from university_professors 
+LIMIT 5;
+
+
+#Create a table universities with three text columns: university_shortname, university, and university_city.
+CREATE TABLE universities (
+university_shortname text,
+university text,
+university_city text
+);
+
+#Adding empty columns to existining empty table
+ALTER TABLE table_name
+ADD COLUMN column_name data_type;
+
+#Alter professors to add the text column (empty): university_shortname
+ALTER TABLE professors
+ADD COLUMN university_shortname text;
+
+#Rename the organisation column to organization in affiliations.
+ALTER TABLE affiliations
+RENAME COLUMN organisation TO organization;
+
+#Delete the university_shortname column in affiliations.
+ALTER TABLE affiliations
+DROP COLUMN university_shortname;
+
+#Insert all DISTINCT professors from university_professors into professors.
+#Print all the rows in professors.
+INSERT INTO professors 
+SELECT DISTINCT firstname, lastname, university_shortname 
+FROM university_professors;
+
+-- Doublecheck the contents of professors
+SELECT * 
+FROM professors ;
+
+#Delete the university_professors table.
+DROP TABLE university_professors;
+
+Rules for databases: attrubite constraints, key constraints, referrential integrity constraints
+
+#prebacivanje text u integer kakobi mogla naraviti izracun - zove se casting
+SELECT transaction_date, amount + CAST (fee AS integer) AS net_amount 
+FROM transactions;
+
+#Now specify a fixed-length character type with the correct length for university_shortname.
+-- Specify the correct fixed-length character type
+ALTER TABLE professors
+ALTER COLUMN university_shortname
+TYPE char(3);
+
+#Change the type of the firstname column to varchar(64).
+-- Convert the values in firstname to a max. of 16 characters
+#Now use SUBSTRING() to reduce firstname to 16 characters so its type can be altered to varchar(16)
+ALTER TABLE professors 
+ALTER COLUMN firstname 
+TYPE varchar(16)
+USING SUBSTRING(firstname  FROM 1 FOR 16)
+
+-- Disallow NULL values in firstname
+ it is no longer possible to add professors which have either their first or last name set to NULL. 
+ Likewise, it is no longer possible to update an existing professor and setting their first or last name to NULL
+ALTER TABLE professors 
+ALTER COLUMN firstname SET NOT NULL;
+
+#Add a not-null constraint for the lastname column.
+ALTER TABLE professors 
+ALTER COLUMN lastname SET NOT NULL;
+
+#Add a unique constraint to the university_shortname column in universities. Give it the name university_shortname_unq
+ALTER TABLE universities
+ADD CONSTRAINT university_shortname_unq UNIQUE(university_shortname);
+
+#####KEYS
+
+#First, find out the number of rows in universities
+SELECT count(*)
+FROM universities;
+#Then, find out how many unique values there are in the university_city column.
+SELECT count(distinct(university_city)) 
+FROM universities;
+#so, obviously, the university_city column wouldn't lend itself as a key. Why? Because there are only 9 distinct values, but the table has 11 rows.
+
+#Superkeys
+#There's a very basic way of finding out what qualifies for a key in an existing, populated table:
+#Count the distinct records for all possible combinations of columns. If the resulting number x equals the number of all rows in the table for a combination, you have discovered a superkey.
+#Then remove one column after another until you can no longer remove columns without seeing the number x decrease. If that is the case, you have discovered a (candidate) key.
+#The table professors has 551 rows. It has only one possible candidate key, which is a combination of two attributes
+select COUNT(distinct(firstname, lastname)) 
+FROM professors;
+551
+#he only combination that uniquely identifies professors is {firstname, lastname}. {firstname, lastname, university_shortname} is a superkey, and all other combinations give duplicate values. Hopefully, the concept of superkeys and keys is now a bit more clear
+
+#add key constraints
+#Rename the organization column to id in organizations.
+#Make id a primary key and name it organization_pk.
+ALTER TABLE organizations
+ADD CONSTRAINT organization_pk PRIMARY KEY (id);
+
+#Rename the university_shortname column to id in universities.
+#Make id a primary key and name it university_pk
+-- Rename the university_shortname column to id
+ALTER TABLE universities
+RENAME COLUMN university_shortname TO id;
+
+-- Make id a primary key
+ALTER TABLE universities
+ADD CONSTRAINT university_pk PRIMARY KEY (id);
+
+
+##SURROGATE KEYS
+#Add a new column id with data type serial to the professors table.
+-- Add the new column to the table
+ALTER TABLE professors 
+ADD COLUMN id serial;
+#Make id a primary key and name it professors_pkey
+ALTER TABLE professors
+ADD CONSTRAINT professors_pkey PRIMARY KEY (id);
+#Write a query that returns all the columns and 10 rows from professors
+SELECT *
+FROM professors
+LIMIT 10;
+# As you can see, PostgreSQL has automatically numbered the rows with the id column, which now functions as a (surrogate) primary key – it uniquely identifies professors.
+
+#-- Count the number of distinct rows with columns make, model
+SELECT COUNT(DISTINCT(make, model))
+FROM cars;
+10
+#Add a new column id with the data type varchar(128).
+-- Add the id column
+ALTER TABLE cars
+ADD COLUMN id varchar(128);
+#Concatenate make and model into id using an UPDATE query and the CONCAT() function
+UPDATE cars
+SET id = CONCAT(make, model);
+#Make id a primary key and name it id_pk.
+-- Make id a primary key
+ALTER TABLE cars
+ADD CONSTRAINT id_pk PRIMARY KEY(id);
+
+-- Have a look at the table
+SELECT * FROM cars;
+
+
+#CREATE TABLE
+#Let's think of an entity type "student". A student has:
+#a last name consisting of up to 128 characters (this cannot contain a missing value),
+#a unique social security number of length 9, consisting only of integers,
+#a phone number of fixed length 12, consisting of numbers and characters (but some students don't have one).
+CREATE TABLE students (
+  last_name varchar(128) NOT NULL,
+  ssn integer PRIMARY KEY,
+  phone_no char(12)
+);
+
+
+#Glue together tables with foreign keys
+
+#REFERENCE a table with a FOREIGN KEY
+ALTER TABLE a 
+ADD CONSTRAINT a_fkey FOREIGN KEY (b_id) REFERENCES b (id);
+
+#Rename the university_shortname column to university_id in professors
+ALTER TABLE professors
+RENAME COLUMN  university_shortname TO university_id;
+#Add a foreign key on university_id column in professors that references the id column in universities.
+#Name this foreign key professors_fkey
+-- Add a foreign key on professors referencing universities
+ALTER TABLE professors
+ADD CONSTRAINT professors_fkey FOREIGN KEY (university_id) REFERENCES universities (id);
+#Perfect! Now, the professors table has a link to the universities table.
+
+#Explore foreign key constraints
+
+INSERTING NEW:
+INSERT INTO professors (firstname, lastname, university_id)
+VALUES ('Albert', 'Einstein', 'MIT'); #will give you error, because MIT is not specified in universities
+correctr:
+INSERT INTO professors (firstname, lastname, university_id)
+VALUES ('Albert', 'Einstein', 'UZH');
+#nserting a professor with non-existing university IDs violates the foreign key constraint you've just added. This also makes sure that all universities are spelled equally – adding to data consistency.
+
+#JOIN tables linked by a foreign key
+-- Select all professors working for universities in the city of Zurich
+SELECT professors.lastname, universities.id, universities.university_city
+FROM professors
+JOIN universities
+ON professors.university_id = universities.id
+WHERE universities.university_city = 'Zurich';
+#First, the university belonging to each professor was attached with the JOIN operation. Then, only professors having "Zurich"" as university city were retained with the WHERE clause
+
+#Add foreign keys to the "affiliations" table
+
+#At the moment, the affiliations table has the structure {firstname, lastname, function, organization}, as you can see in the preview at the bottom right. 
+#In the next three exercises, you're going to turn this table into the form {professor_id, organization_id, function}, with professor_id and organization_id being foreign keys that point to the respective tables.
+#Add a professor_id column with integer data type to affiliations, and declare it to be a foreign key that references the id column in professors.
+ALTER TABLE affiliations
+ADD COLUMN professor_id integer REFERENCES professors (id);
+#Rename the organization column in affiliations to organization_id
+ALTER TABLE affiliations
+RENAME COLUMN organization TO organization_id;
+#Add a foreign key constraint on organization_id so that it references the id column in organizations
+ALTER TABLE affiliations
+ADD CONSTRAINT affiliations_organization_fkey FOREIGN KEY (organization_id) REFERENCES organizations (id);
+
+#Making organization_id a foreign key worked flawlessly because these organizations actually exist in the organizations table. That was only the first part, though. 
+#Now it's time to update professor_id in affiliations – so that it correctly refers to the corresponding professors.
+
+#-------------update columns of a table based on values in another table:
+UPDATE table_a
+SET column_to_update = table_b.column_to_update_from
+FROM table_b
+WHERE condition1 AND condition2 AND ...;
+#For each row in table_a, find the corresponding row in table_b where condition1, condition2, etc., are met.
+#Set the value of column_to_update to the value of column_to_update_from (from that corresponding row).
+
+#Have a look at the 10 first rows of affiliations
+# As you can see, the correct professors.id has been inserted into professor_id for each record, thanks to the matching firstname and lastname in both tables.
+- Update professor_id to professors.id where firstname, lastname correspond to rows in professors
+UPDATE affiliations
+SET professor_id = professors.id
+FROM professors
+WHERE affiliations.firstname = professors.firstname AND affiliations.lastname = professors.lastname;
+
+#Because professors are referenced by professor_id now, the firstname and lastname columns are no longer needed, so it's time to drop them. 
+#After all, one of the goals of a database is to reduce redundancy where possible
+-- Drop the firstname column
+ALTER TABLE affiliations
+DROP COLUMN firstname;
+
+-- Drop the lastname column
+ALTER TABLE affiliations
+DROP COLUMN lastname;
+
+#referrentail integrity
+You defined a foreign key on professors.university_id that references universities.id, 
+so referential integrity is said to hold from professors to universities
+- ako hoces izbrisati row u universities baci ti error
+
+##Change the referential integrity behavior of a key
+SELECT constraint_name, table_name, constraint_type
+FROM information_schema.table_constraints
+WHERE constraint_type = 'FOREIGN KEY';
+
+constraint_name	table_name	constraint_type
+affiliations_organization_id_fkey	affiliations	FOREIGN KEY
+affiliations_professor_id_fkey	affiliations	FOREIGN KEY
+professors_fkey	professors	FOREIGN KEY
+
+#Delete the affiliations_organization_id_fkey foreign key constraint in affiliations
+-- Drop the right foreign key constraint
+ALTER TABLE affiliations
+DROP CONSTRAINT affiliations_organization_id_fkey;
+
+#Add a new foreign key that cascades deletion if a referenced record is deleted from organizations. 
+Name it affiliations_organization_id_fkey
+
+ALTER TABLE affiliations
+ADD CONSTRAINT affiliations_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES organizations (id) ON DELETE cascade;
+
+# As you can see, whenever an organization referenced by an affiliation is deleted, the affiliations also gets deleted. 
+#It is your job as database designer to judge whether this is a sensible configuration. 
+#Sometimes, setting values to NULL or to restrict deletion altogether might make more sense!
+SELECT COUNT(*), professors.university_id 
+FROM affiliations
+JOIN professors
+ON affiliations.professor_id = professors.id
+GROUP BY professors.university_id 
+ORDER BY count DESC;
+
+-- Group the table by organization sector, professor and university city
+SELECT COUNT(*), organizations.organization_sector, 
+professors.id, universities.university_city
+FROM affiliations
+JOIN professors
+ON affiliations.professor_id = professors.id
+JOIN organizations
+ON affiliations.organization_id = organizations.id
+JOIN universities
+ON professors.university_id = universities.id
+GROUP BY organizations.organization_sector, 
+professors.id, universities.university_city;
+
+#The professor with id 538 has the most affiliations in the "Media & communication" sector, and he or she lives in the city of Lausanne. Thanks to your database design, you can be sure that the data you've just queried is consistent. Of course, you could also put university_city and organization_sector in their own tables, making the data model even more formal. However, in database design, you have to strike a balance between modeling overhead, desired data consistency, and usability for queries like the one you've just wrote. Congratulations, you made it to the e
+SELECT COUNT(*), organizations.organization_sector, 
+professors.id, universities.university_city
+FROM affiliations
+JOIN professors
+ON affiliations.professor_id = professors.id
+JOIN organizations
+ON affiliations.organization_id = organizations.id
+JOIN universities
+ON professors.university_id = universities.id
+WHERE organizations.organization_sector = 'Media & communication'
+GROUP BY organizations.organization_sector, 
+professors.id, universities.university_city
+ORDER BY count DESC;
+
+
+
+_______________________________Joining data in SQL
+
+#Joining data in Postgre-SQL
+
+#inner join
+SELECT *
+FROM left_table
+INNER JOIN right_table
+ON left_table.id = right_table.id;
+
+-- Select all columns from cities
+SELECT *
+  FROM cities;
+
+
+Inner join the cities table on the left to the countries table on the right, keeping all of the fields in both tables.
+You should match the tables on the country_code field in cities and the code field in countries.
+
+SELECT * 
+FROM cities
+  -- 1. Inner join to countries
+  INNER JOIN countries
+    -- 2. Match on the country codes
+    ON cities.country_code = countries.code;
+
+#name sje u cities tabu pa je names i u countries tabu pa se trebaju oznaciti tabovi tockom i onda tek imena kolona
+ SELECT cities.name AS city, countries.name AS country, region
+FROM cities
+  INNER JOIN countries
+    ON cities.country_code = countries.code;   
+
+#can use table aliasing as a shortcut.
+
+Check out the aliasing of cities and countries below.
+
+SELECT c1.name AS city, c2.name AS country
+FROM cities AS c1
+INNER JOIN countries AS c2
+ON c1.country_code = c2.code;
+
+#Sometimes it's easier to write SQL code out of order: you write the SELECT statement after you've done the JOIN
+
+#step 3c.code, aliased as country_code. name, year, and inflation_rate, not aliased.
+SELECT c.code AS country_code, name, year, inflation_rate
+#1 Join the tables countries (left) and economies (right) aliasing countries AS c and economies AS e.
+FROM countries AS c
+  INNER JOIN economies AS e
+  #2 Specify the field to match the tables ON.
+    ON c.code = e.code;
+
+
+#Now, for each country, you want to get the country name, its region, and the fertility rate and unemployment rate for both 2010 and 2015.
+
+Inner join countries (left) and populations (right) on the code and country_code fields respectively.
+Alias countries AS c and populations AS p.
+Select code, name, and region from countries and also select year and fertility_rate from populations (5 fields in total).
+
+SELECT c.code, c.name, c.region, p.year, p.fertility_rate
+  -- 1. From countries (alias as c)
+  FROM countries AS c
+  -- 2. Join with populations (as p)
+  INNER JOIN populations AS p
+    -- 3. Match on country code
+    ON c.code = p.country_code;
+
+#Add an additional inner join with economies to your previous query by joining on code.
+#Include the unemployment_rate column that became available through joining with economies.
+#Note that year appears in both populations and economies, so you have to explicitly use e.year instead of year as you did before.
+SELECT c.code, name, region, e.year, fertility_rate, unemployment_rate
+  -- 1. From countries (alias as c)
+  FROM countries AS c
+  -- 2. Join to populations (as p)
+  INNER JOIN populations AS p
+    -- 3. Match on country code
+    ON c.code = p.country_code
+  -- 4. Join to economies (as e)
+  INNER JOIN economies AS e
+    -- 5. Match on country code
+    ON c.code = e.code;
+
+ #Fix your previous query: in your last ON clause, use AND to add an additional joining condition. In addition to joining on code in c and e, also join on year in e and p.
+-- 6. Select fields
+SELECT c.code, name, region, e.year, fertility_rate, unemployment_rate
+  -- 1. From countries (alias as c)
+  FROM countries AS c
+  -- 2. Join to populations (as p)
+  INNER JOIN populations AS p
+    -- 3. Match on country code
+    ON c.code = p.country_code
+  -- 4. Join to economies (as e)
+  INNER JOIN economies AS e
+    -- 5. Match on country code and year
+    ON c.code = e.code AND e.year = p.year;
+
+
+~~~~~~~~~~~~Inner join with USING
+Inner join countries on the left and languages on the right with USING(code).
+Select the fields corresponding to:
+country name AS country,
+continent name,
+language name AS language, and
+whether or not the language is official.
+Remember to alias your tables using the first letter of their names.
+
+-- 4. Select fields
+SELECT c.name AS country, continent, l.name AS language, official
+  -- 1. From countries (alias as c)
+  FROM countries AS c
+  -- 2. Join to languages (as l)
+  INNER JOIN languages AS l
+    -- 3. Match using code
+    USING(code)
+
+~~~~~~~~~joing table to itself
+#Since you'll be joining the populations table to itself, you can alias populations as p1 and also populations as p2. This is good practice whenever you are aliasing and your tables have the same first letter. Note that you are required to alias the tables with self-joins.
+
+#Join populations with itself ON country_code.
+#Select the country_code from p1 and the size field from both p1 and p2. 
+#SQL won't allow same-named fields, so alias p1.size as size2010 and p2.size as size2015.
+
+-- 4. Select fields with aliases
+SELECT p1.country_code, p1.size AS size2010, p2.size AS size2015
+-- 1. From populations (alias as p1)
+FROM populations AS p1
+  -- 2. Join to itself (alias as p2)
+  INNER JOIN populations as p2
+    -- 3. Match on country code
+    ON p1.country_code =  p2.country_code
+
+#Extend the ON in your query to include only those records where the p1.year (2010) matches with p2.year - 5 (2015 - 5 = 2010). 
+#This will omit the three entries per country_code that you aren't interested in.
+-- 5. Select fields with aliases
+SELECT p1.country_code,
+       p1.size AS size2010,
+       p2.size AS size2015
+-- 1. From populations (alias as p1)
+FROM populations as p1
+  -- 2. Join to itself (alias as p2)
+  INNER JOIN populations as p2
+    -- 3. Match on country code
+    ON p1.country_code =  p2.country_code
+        -- 4. and year (with calculation)
+        AND p1.year = p2.year-5
+#As you just saw, you can also use SQL to calculate values like p2.year - 5 for you. With two fields like size2010 and size2015, you may want to determine the percentage increase from one field to the next:
+
+With two numeric fields A and B, the percentage growth from A to B can be calculated as (B−A)/A∗100.0.
+SELECT p1.country_code,
+       p1.size AS size2010, 
+       p2.size AS size2015,
+       -- 1. calculate growth_perc
+       ((p2.size - p1.size)/p1.size * 100.0) AS growth_perc
+-- 2. From populations (alias as p1)
+FROM populations AS p1
+  -- 3. Join to itself (alias as p2)
+  INNER JOIN populations AS p2
+    -- 4. Match on country code
+    ON p1.country_code = p2.country_code
+        -- 5. and year (with calculation)
+        AND p1.year = p2.year - 5;
+
+
+#You can use CASE with WHEN, THEN, ELSE, and END to define a new grouping field.
+Using the countries table, create a new field AS geosize_group that groups the countries into three groups:
+
+If surface_area is greater than 2 million, geosize_group is 'large'.
+If surface_area is greater than 350 thousand but not larger than 2 million, geosize_group is 'medium'.
+Otherwise, geosize_group is 'small'
+
+SELECT name, continent, code, surface_area,
+    CASE WHEN surface_area > 2000000 THEN 'large'
+        WHEN surface_area > 350000 THEN 'medium'
+        ELSE 'small' END
+        AS geosize_group
+FROM countries;
+
+
+#EXAM PART 1
+SELECT country_code, size,
+    -- 1. First case
+    CASE WHEN size > 50000000 THEN 'large'
+        -- 2. Second case
+        WHEN size > 1000000 THEN 'medium'
+        -- 3. Else clause + end
+        ELSE 'small' END
+        -- 4. Alias name
+        AS popsize_group
+-- 5. From table
+FROM populations
+-- 6. Focus on 2015
+WHERE year = 2015;
+
+#make new table pop_plus with INTO
+SELECT country_code, size,
+    CASE WHEN size > 50000000 THEN 'large'
+        WHEN size > 1000000 THEN 'medium'
+        ELSE 'small' END
+        AS popsize_group
+-- 1. Into table
+INTO pop_plus
+FROM populations
+WHERE year = 2015;
+
+-- 2. Select all columns of pop_plus
+SELECT * FROM pop_plus
+
+Keep the first query intact that creates pop_plus using INTO.
+Write a query to join countries_plus AS c on the left with pop_plus AS p on the right matching on the country code fields.
+Sort the data based on geosize_group, in ascending order so that large appears on top.
+Select the name, continent, geosize_group, and popsize_group fields.
+
+SELECT country_code, size,
+    CASE WHEN size > 50000000 THEN 'large'
+        WHEN size > 1000000 THEN 'medium'
+        ELSE 'small' END
+        AS popsize_group
+-- 1. Into table
+INTO pop_plus
+FROM populations
+WHERE year = 2015;
+-- 5. Select fields
+SELECT name, continent, geosize_group, popsize_group
+-- 1. From countries_plus (alias as c)
+FROM countries_plus AS c
+  -- 2. Join to pop_plus (alias as p)
+  INNER JOIN pop_plus AS p
+    -- 3. Match on country code
+    ON c.code = p.country_code
+-- 4. Order the table    
+ORDER BY geosize_group;
+
+
+~~~~~~~~~~~~~~~~~~~~#OUTER JOINS: LEFT, RIGHT, FULL
+#explore the differences between performing an inner join and a left join using the cities and countries tables
+SELECT c1.name AS city, code, c2.name AS country,
+       region, city_proper_pop
+FROM cities AS c1
+  INNER JOIN countries AS c2
+    ON c1.country_code = c2.code
+ORDER BY code DESC;
+
+city	code	country	region	city_proper_pop
+Harare	ZWE	Zimbabwe	Eastern Africa	1606000
+Lusaka	ZMB	Zambia	Eastern Africa	1742980
+Cape Town	ZAF	South Africa	Southern Africa	3740030
+Johannesburg	ZAF	South Africa	Southern Africa	4434830
+
+#Change the code to perform a LEFT JOIN instead of an INNER JOIN. After executing this query, note how many records the query result contains.
+SELECT c1.name AS city, code, c2.name AS country,
+       region, city_proper_pop
+FROM cities AS c1
+  LEFT JOIN countries AS c2
+    ON c1.country_code = c2.code
+ORDER BY code DESC;
+
+city	code	country	region	city_proper_pop
+Taichung	null	null	null	2752410
+Tainan	null	null	null	1885250
+Kaohsiung	null	null	null	2778920
+
+
+/*
+5. Select country name AS country, the country's local name,
+the language name AS language, and
+the percent of the language spoken in the country
+*/
+
+SELECT c.name AS country, local_name, l.name AS language, percent
+-- 1. From left table (alias as c)
+FROM countries AS c
+  -- 2. Join to right table (alias as l)
+  INNER JOIN languages AS l
+    -- 3. Match on fields
+    ON c.code = l.code
+-- 4. Order by descending country
+ORDER BY country DESC;
+
+#914 rows
+
+/*
+5. Select country name AS country, the country's local name,
+the language name AS language, and
+the percent of the language spoken in the country
+*/
+
+SELECT c.name AS country, local_name, l.name AS language, percent
+-- 1. From left table (alias as c)
+FROM countries AS c
+  -- 2. Join to right table (alias as l)
+  LEFT JOIN languages AS l
+    -- 3. Match on fields
+    ON c.code = l.code
+-- 4. Order by descending country
+ORDER BY country DESC;
+
+#921 rows
+
+/*
+revisit the use of the AVG() function introduced in our Intro to SQL for Data Science course. 
+You will use it in combination with left join to determine the average gross domestic product (GDP) per capita by region in 2010
+*/
+
+SELECT region, avg(gdp_percapita) AS avg_gdp
+-- From countries (alias as c)
+FROM countries AS c
+  -- 2. Left join with economies (alias as e)
+  LEFT JOIN economies AS e
+    -- 3. Match on code fields
+    ON c.code = e.code
+-- Focus on 2010
+WHERE year = 2010
+-- Group by region
+GROUP BY region;
+
+#Arrange this data on average GDP per capita for each region in 2010 from highest to lowest average GDP per capita
+-- Select fields
+SELECT region, avg(gdp_percapita) AS avg_gdp
+-- From countries (alias as c)
+FROM countries AS c
+  -- 2. Left join with economies (alias as e)
+  LEFT JOIN economies AS e
+    -- 3. Match on code fields
+    ON c.code = e.code
+-- Focus on 2010
+WHERE year = 2010
+-- Group by region
+GROUP BY region
+-- Order by descending avg_gdp
+ORDER BY avg_gdp DESC;
+
+/*
+Right join
+Right joins aren't as common as left joins. One reason why is that you can always write a right join as a left join.
+*/
+
+-- convert this code to use RIGHT JOINs instead of LEFT JOINs
+/*
+SELECT cities.name AS city, urbanarea_pop, countries.name AS country,
+       indep_year, languages.name AS language, percent
+FROM cities
+  LEFT JOIN countries
+    ON cities.country_code = countries.code
+  LEFT JOIN languages
+    ON countries.code = languages.code
+ORDER BY city, language;
+*/
+
+city	urbanarea_pop	country	indep_year	language	percent
+Abidjan	4765000	Cote d'Ivoire	1960	French	null
+Abidjan	4765000	Cote d'Ivoire	1960	Other	null
+Abu Dhabi	1145000	United Arab Emirates	1971	Arabic	null
+
+
+SELECT cities.name AS city, urbanarea_pop, countries.name AS country,
+       indep_year, languages.name AS language, percent
+FROM languages
+  RIGHT JOIN countries
+    ON countries.code = languages.code
+  RIGHT JOIN cities
+    ON cities.country_code = countries.code
+ORDER BY city, language;   #Correct; everything should be reversed!
+
+
+#############FULL JOIN~~~~~~~~~~
+
+
+SELECT name AS country, code, region, basic_unit
+-- 3. From countries
+FROM countries
+  -- 4. Join to currencies
+  FULL JOIN currencies
+    -- 5. Match on code
+    USING (code)
+-- 1. Where region is North America or null
+WHERE region = 'North America' OR region IS NULL
+-- 2. Order by region
+ORDER BY region;
+
+SELECT name AS country, code, region, basic_unit
+-- 1. From countries
+FROM countries
+  -- 2. Join to currencies
+  LEFT JOIN currencies
+    -- 3. Match on code
+    USING (code)
+-- 4. Where region is North America or null
+WHERE region = 'North America' OR region IS NULL
+-- 5. Order by region
+ORDER BY region;
+
+SELECT name AS country, code, region, basic_unit
+FROM countries
+  -- 1. Join to currencies
+  INNER JOIN currencies
+    USING (code)
+-- 2. Where region is North America or null
+WHERE region = 'North America' OR region IS NULL
+-- 3. Order by region
+ORDER BY region;
+
+#each join results in different number of rows with full join having the highest number of rows
+
+
+#Excersise 2
+SELECT countries.name, code, languages.name AS language
+-- 3. From languages
+FROM languages
+  -- 4. Join to countries
+  FULL JOIN countries
+    -- 5. Match on code
+    USING (code)
+-- 1. Where countries.name starts with V or is null
+WHERE countries.name LIKE 'V%' OR countries.name IS NULL
+-- 2. Order by ascending countries.name
+ORDER BY countries.name;
+
+
+SELECT countries.name, code, languages.name AS language
+FROM languages
+  -- 1. Join to countries
+  LEFT JOIN countries
+    -- 2. Match using code
+    USING (code)
+-- 3. Where countries.name starts with V or is null
+WHERE countries.name LIKE 'V%' OR countries.name IS NULL
+ORDER BY countries.name;
+
+SELECT countries.name, code, languages.name AS language
+FROM languages
+  -- 1. Join to countries
+  INNER JOIN countries
+    USING (code)
+-- 2. Where countries.name starts with V or is null
+WHERE countries.name LIKE 'V%' OR countries.name IS NULL
+ORDER BY countries.name;
+
+#full join using two consecutive full joins on the three tables you worked with in the previous two exercises.
+-- 7. Select fields (with aliases)
+SELECT c1.name AS country, region, l.name AS language,
+       basic_unit, frac_unit
+-- 1. From countries (alias as c1)
+FROM countries AS c1
+  -- 2. Join with languages (alias as l)
+  FULL JOIN languages AS l
+    -- 3. Match on code
+    USING (code)
+  -- 4. Join with currencies (alias as c2)
+  FULL JOIN currencies AS c2
+    -- 5. Match on code
+    USING (code)
+-- 6. Where region like Melanesia and Micronesia
+WHERE region LIKE 'M%esia';
+
+
+#CROSSJOIN
+#look at all possible combinations
+
+-- 4. Select fields
+SELECT c.name AS city, l.name AS language
+-- 1. From cities (alias as c)
+FROM cities AS c        
+  -- 2. Join to languages (alias as l)
+  CROSS JOIN languages AS l
+-- 3. Where c.name like Hyderabad
+WHERE c.name LIKE 'Hyder%';    #dobijes glupe rezultate
+
+SELECT c.name AS city, l.name AS language
+FROM cities AS c                                                                                                                
+  INNER JOIN languages AS l
+  ON c.country_code = l.code
+WHERE c.name LIKE 'Hyder%'; #puno normalnije
+
+
+#####final exam
+In terms of life expectancy for 2010, determine the names of the lowest five countries and their regions.
+
+-- Select fields
+SELECT c.name AS country, region, p.life_expectancy AS life_exp
+-- From countries (alias as c)
+FROM countries AS c
+  -- Join to populations (alias as p)
+  INNER JOIN populations AS p
+    -- Match on country code
+    ON c.code = p.country_code
+-- Focus on 2010
+WHERE year = 2010
+-- Order by life_exp
+ORDER BY life_exp
+-- Limit to 5 records                                                                                           
+LIMIT 5;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+
+#################UNION~~~~~~~~~~
+#bind fileds on top of each other
+
+SELECT prime_minister AS leader, country
+FROM prime_ministers
+UNION
+SELECT monarch, country
+FROM monarchs
+ORDER BY country;
+
+-- Select fields from 2010 table
+SELECT *
+  -- From 2010 table
+  FROM economies2010
+	-- Set theory clause
+	UNION
+-- Select fields from 2015 table
+SELECT *
+  -- From 2015 table
+  FROM economies2015
+-- Order by code and year
+ORDER BY code, year;
+
+#Determine all (non-duplicated) country codes in either the cities or the currencies table. The result should be a table with only one field called country_code
+-- Select field
+SELECT country_code
+  -- From cities
+  FROM cities
+	-- Set theory clause
+	UNION
+-- Select field
+SELECT code
+  -- From currencies
+  FROM currencies
+-- Order by country_code
+ORDER BY country_code;
+
+*******UNION ALL*****
+#prikaze ti i duplice
+
+#Determine all combinations (include duplicates) of country code and year that exist in either the economies or the populations tables. Order by code then year.
+
+-- Select fields
+SELECT code, year
+  -- From economies
+  FROM economies
+	-- Set theory clause
+	UNION ALL
+-- Select fields
+SELECT country_code, year
+  -- From populations
+  FROM populations
+-- Order by code, year
+ORDER BY code, year;
+
+________________INTERSECT
+sto je zajednicko oboje, isto se polja/fileds/kolone nataknu jedan na drugog
+INTERSECT: returns only records appearing in both tables
+
+
+-- Select fields
+SELECT code, year
+  -- From economies
+  FROM economies
+	-- Set theory clause
+	INTERSECT
+-- Select fields
+SELECT country_code, year
+  -- From populations
+  FROM populations
+-- Order by code and year
+ORDER BY code, year;
+
+#which countries also have a city with the same name as their country name?
+- Select fields
+SELECT name
+  -- From countries
+  FROM countries
+	-- Set theory clause
+	INTERSECT
+-- Select fields
+SELECT name
+  -- From cities
+  FROM cities;
+
+  Singapoure
+  Hong Kong
+
+________________EXCEPT
+#thing that are in one reconrd but not in others
+
+#Get the names of cities in cities which are not noted as capital cities in countries as a single field result
+
+-- Select field
+SELECT name
+  -- From cities
+  FROM cities
+	-- Set theory clause
+	EXCEPT
+-- Select field
+SELECT capital
+  -- From countries
+  FROM countries
+-- Order by result
+ORDER BY name;
+
+#Determine the names of capital cities that are not listed in the cities table
+-- Select field
+SELECT capital
+  -- From countries
+  FROM countries
+	-- Set theory clause
+	EXCEPT
+-- Select field
+SELECT name
+  -- From cities
+  FROM cities
+-- Order by ascending capital
+ORDER BY capital;
+
+
+__________SEMI JOIN 
+#filtering left table with conditions in the right table
+
+-- Select code
+SELECT code
+  -- From countries
+  FROM countries
+-- Where region is Middle East
+WHERE region = 'Middle East';
+
+-- Select field
+SELECT DISTINCT name
+  -- From languages
+  FROM languages
+WHERE code IN
+  -- Subquery
+  (SELECT code
+  -- From countries
+  FROM countries
+-- Where region is Middle East
+WHERE region = 'Middle East')
+-- Order by name
+ORDER BY name;
+
+
+__________ANTI JOIN
+#Your goal is to identify the currencies used in Oceanian countries!
+-- Select statement
+SELECT COUNT(name)
+  -- From countries
+  FROM countries
+-- Where continent is Oceania
+WHERE continent = 'Oceania'; #19
+
+-- 5. Select fields (with aliases)
+SELECT c1.code, c1, name, basic_unit AS currency, c2.code
+  -- 1. From countries (alias as c1)
+  FROM countries AS c1
+  	-- 2. Join with currencies (alias as c2)
+  	INNER JOIN currencies AS c2
+    -- 3. Match on code
+    USING(code) 
+-- 4. Where continent is Oceania
+WHERE continent = 'Oceania';
+
+-- 3. Select fields
+SELECT code, name
+  -- 1. From countries (alias as c1)
+  FROM countries 
+  -- 5. Where continent is Oceania
+  WHERE continent = 'Oceania'
+  	-- 1. And code not in
+  	AND code NOT IN
+  	-- 2. Subquery
+  	(SELECT code
+  	 FROM currencies);
+
+
+-- Select the city name
+SELECT c1.name
+  -- Alias the table where city name resides
+  FROM cities AS c1
+  -- Choose only records matching the result of multiple set theory clauses
+  WHERE country_code IN
+(
+    -- Select appropriate field from economies AS e
+    SELECT e.code
+    FROM economies AS e
+    -- Get all additional (unique) values of the field from currencies AS c2  
+    UNION
+    SELECT c2.code
+    FROM currencies AS c2
+    -- Exclude those appearing in populations AS p
+    EXCEPT
+    SELECT p.country_code
+    FROM populations AS p
+);  	
+
+
+____________NESTED queries
+
+Subquery inside where
+#You'll now try to figure out which countries had high average life expectancies (at the country level) in 2015.
+-- Select average life_expectancy
+SELECT avg(life_expectancy)
+  -- From populations
+  FROM populations
+-- Where year is 2015
+WHERE year = 2015
+
+#elect all fields from populations with records corresponding to larger than 1.15 times the average you calculated in the first task for 2015
+-- Select fields
+SELECT *
+  -- From populations
+  FROM populations
+-- Where life_expectancy is greater than
+WHERE life_expectancy > 1.15 *
+  -- 1.15 * subquery
+  (SELECT AVG(life_expectancy)
+   FROM populations
+   WHERE year=2015) 
+  AND year = 2015;
+
+#get the urban area population for only capital cities.
+-- 2. Select fields
+SELECT name, country_code, urbanarea_pop
+  -- 3. From cities
+  FROM cities
+-- 4. Where city name in the field of capital cities
+WHERE  name IN
+  -- 1. Subquery
+  (SELECT capital
+   FROM countries)
+ORDER BY urbanarea_pop DESC;
+
+Subquery inside FROM
+#number of languages spoken for each country, identified by the country's local name!
+
+#Begin by determining for each country code how many languages are listed in the languages table using SELECT, FROM, and GROUP BY
+-- Select fields (with aliases)
+SELECT code, COUNT(*) AS lang_num
+  -- From languages
+  FROM languages
+-- Group by code
+GROUP BY code;
+
+#ADVANCED Query
+-- Select fields
+SELECT name, continent, inflation_rate
+  -- From countries
+  FROM countries
+  	-- Join to economies
+  	INNER JOIN economies
+    -- Match on code
+    USING (code)
+-- Where year is 2015
+WHERE year = 2015;
+
+# for each of the six continents listed in 2015, you'll identify which country had the maximum inflation rate (and how high it was) using multiple subqueries.
+#Get the maximum inflation rate
+-- Select fields
+SELECT MAX(inflation_rate) AS max_inf
+  -- Subquery using FROM (alias as subquery)
+  FROM (
+      SELECT name, continent, inflation_rate
+      FROM countries
+      INNER JOIN economies
+      USING (code)
+      WHERE year = 2015) AS subquery
+-- Group by continent
+GROUP BY continent;
+-- Select fields
+SELECT name, continent, inflation_rate
+  -- From countries
+  FROM countries
+	-- Join to economies
+	INNER JOIN economies
+	-- Match on code
+	USING (code)
+  -- Where year is 2015
+  WHERE year = 2015
+    -- And inflation rate in subquery (alias as subquery)
+    AND inflation_rate IN (
+        SELECT MAX(inflation_rate) AS max_inf
+        FROM  (
+             SELECT name, continent, inflation_rate
+             FROM countries
+             INNER JOIN economies
+             USING (code)
+             WHERE year = 2015) AS subquery
+        GROUP BY continent);
+
+
+#Use a subquery to get 2015 economic data for countries that do not have
+
+gov_form of 'Constitutional Monarchy' or
+'Republic' in their gov_form
+ -- Select fields
+SELECT code, inflation_rate, unemployment_rate
+  -- From economies
+  FROM economies
+  -- Where year is 2015 and code is not in
+  WHERE year = 2015 AND code NOT IN
+  	-- Subquery
+  	(SELECT code
+  	 FROM countries
+  	 WHERE (gov_form = 'Constitutional Monarchy' OR gov_form LIKE '%Republic%'))
+-- Order by inflation rate
+ORDER BY inflation_rate;   
+
+
+#get the country names and other 2015 data in the economies table and the countries table for Central American countries with an official language.
+-- Select fields
+SELECT DISTINCT e.code, total_investment, imports, c.code, c.name
+  -- From table (with alias)
+  FROM economies AS e
+    -- Join with table (with alias)
+    LEFT JOIN countries AS c
+      -- Match on code
+      ON (e.code = c.code
+      -- and code in Subquery
+        AND c.code IN (
+          SELECT l.code
+          FROM languages AS l
+          WHERE official = 'true'
+        ) )
+  -- Where region and year are correct
+  WHERE region = 'Central America' AND year = 2015
+-- Order by field
+ORDER BY c.name;
+
+# calculate the average fertility rate for each region in 2015
+-- Select fields
+SELECT region, continent, AVG(fertility_rate) AS avg_fert_rate
+  -- From left table
+  FROM countries AS c
+    -- Join to right table
+    INNER JOIN populations AS p
+      -- Match on join condition
+      ON c.code = p.country_code
+  -- Where specific records matching some condition
+  WHERE year = 2015
+-- Group appropriately?
+GROUP BY region, continent
+-- Order appropriately
+ORDER BY avg_fert_rate;
+
+
+
+-- Select fields
+SELECT name, country_code, city_proper_pop, metroarea_pop,
+	  -- Calculate city_perc
+      city_proper_pop / metroarea_pop * 100 AS city_perc
+  -- From appropriate table    
+  FROM cities
+  -- Where
+  WHERE name IN
+    -- Subquery
+    (SELECT capital
+     FROM countries
+     WHERE (continent = 'Europe'
+        OR continent LIKE '%America'))
+       AND metroarea_pop IS NOT NULL
+-- Order appropriately
+ORDER BY city_perc DESC
+-- Limit amount
+LIMIT 10;
